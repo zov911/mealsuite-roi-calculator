@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MealSuite ROI Calculator — Foodservice Value Assessment</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════
+   DESIGN TOKENS
+════════════════════════════════════════ */
+:root {
+  --cream:   #f8f4ee;
+  --cream2:  #f0ebe1;
+  --cream3:  #e8e0d0;
+  --forest:  #1a3d2b;
+  --forest2: #244f38;
+  --forest3: #2d6347;
+  --gold:    #c8922a;
+  --gold2:   #e0a83a;
+  --gold-lt: rgba(200,146,42,0.12);
+  --gold-gw: rgba(200,146,42,0.25);
+  --rust:    #b34a2a;
+  --rust-lt: rgba(179,74,42,0.1);
+  --teal:    #1e6b6b;
+  --teal-lt: rgba(30,107,107,0.1);
+  --ink:     #1c2218;
+  --ink2:    #2e3829;
+  --muted:   #7a8070;
+  --dim:     #b0b8a8;
+  --white:   #ffffff;
+  --shadow:  rgba(28,34,24,0.08);
+  --r:       10px;
+  --r2:      16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Warm grain texture */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0; opacity: 0.6;
+}
+
+.wrap { position: relative; z-index: 1; max-width: 1160px; margin: 0 auto; padding: 0 20px 80px; }
+
+/* ════════════════════════════════════════
+   HEADER
+════════════════════════════════════════ */
+.site-header {
+  padding: 22px 0 20px;
+  border-bottom: 1px solid var(--cream3);
+  display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  margin-bottom: 0;
+}
+.logo-area { display: flex; align-items: center; gap: 13px; }
+.logo-mark {
+  width: 44px; height: 44px;
+  background: var(--forest);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.logo-text .brand {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 700;
+  color: var(--forest); line-height: 1;
+  letter-spacing: -0.3px;
+}
+.logo-text .tagline { font-size: 11px; color: var(--muted); margin-top: 2px; font-weight: 500; }
+.hdr-pill {
+  background: var(--forest); color: var(--cream);
+  font-size: 11px; font-weight: 600;
+  padding: 6px 16px; border-radius: 20px;
+  letter-spacing: 0.3px;
+}
+
+/* ════════════════════════════════════════
+   HERO
+════════════════════════════════════════ */
+.hero {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 48px; align-items: center;
+  padding: 52px 0 44px;
+  border-bottom: 1px solid var(--cream3);
+}
+@media (max-width: 760px) { .hero { grid-template-columns: 1fr; gap: 28px; padding: 36px 0 32px; } }
+
+.hero-kicker {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 600; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--gold);
+  margin-bottom: 16px;
+}
+.hero-kicker::before { content: ''; width: 20px; height: 1.5px; background: var(--gold); }
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(30px, 4.5vw, 50px);
+  font-weight: 700; line-height: 1.1;
+  color: var(--ink); letter-spacing: -0.5px;
+  margin-bottom: 18px;
+}
+.hero h1 em { font-style: italic; color: var(--forest3); }
+.hero-sub { font-size: 16px; color: var(--muted); line-height: 1.7; margin-bottom: 24px; }
+.hero-stats { display: flex; gap: 28px; flex-wrap: wrap; }
+.hs { border-left: 2px solid var(--cream3); padding-left: 14px; }
+.hs-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px; font-weight: 700;
+  color: var(--forest); line-height: 1;
+}
+.hs-lbl { font-size: 11px; color: var(--muted); margin-top: 3px; font-weight: 500; }
+
+/* Hero visual */
+.hero-visual {
+  background: var(--forest);
+  border-radius: var(--r2);
+  padding: 28px;
+  position: relative; overflow: hidden;
+}
+.hero-visual::before {
+  content: '';
+  position: absolute; top: -60px; right: -60px;
+  width: 250px; height: 250px;
+  background: radial-gradient(circle, rgba(200,146,42,0.2) 0%, transparent 70%);
+}
+.hv-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; color: rgba(255,255,255,0.4);
+  margin-bottom: 20px;
+}
+.hv-module {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px; padding: 10px 14px;
+  margin-bottom: 7px;
+  transition: all 0.2s;
+}
+.hv-module:hover { background: rgba(255,255,255,0.1); }
+.hv-icon { font-size: 17px; flex-shrink: 0; }
+.hv-name { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.8); flex: 1; }
+.hv-check {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--gold); display: flex; align-items: center;
+  justify-content: center; font-size: 10px; flex-shrink: 0;
+}
+
+/* ════════════════════════════════════════
+   STEP INDICATOR
+════════════════════════════════════════ */
+.steps-nav {
+  display: flex; align-items: center; gap: 0;
+  padding: 28px 0 24px;
+}
+.sn-item {
+  display: flex; align-items: center; gap: 9px;
+  flex: 1; cursor: pointer;
+  padding: 8px 0; position: relative;
+}
+.sn-item:not(:last-child)::after {
+  content: '';
+  position: absolute; top: 50%; right: 0;
+  width: calc(100% - 130px); height: 1px;
+  background: var(--cream3); transform: translateY(-50%);
+  left: 120px;
+}
+.sn-item.done:not(:last-child)::after { background: var(--forest3); }
+.sn-circle {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--cream2); border: 1.5px solid var(--cream3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 600; color: var(--muted);
+  flex-shrink: 0; transition: all 0.3s; z-index: 1;
+}
+.sn-item.active .sn-circle {
+  background: var(--forest); border-color: var(--forest);
+  color: var(--cream); box-shadow: 0 0 0 4px rgba(26,61,43,0.12);
+}
+.sn-item.done .sn-circle { background: var(--forest3); border-color: var(--forest3); color: white; }
+.sn-label { font-size: 12px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.sn-item.active .sn-label { color: var(--forest); }
+.sn-item.done .sn-label { color: var(--forest3); }
+@media (max-width: 560px) { .sn-label { display: none; } .sn-item:not(:last-child)::after { display: none; } }
+
+/* ════════════════════════════════════════
+   MAIN GRID
+════════════════════════════════════════ */
+.main-grid {
+  display: grid; grid-template-columns: 1fr 380px;
+  gap: 24px; align-items: start;
+}
+@media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+/* ════════════════════════════════════════
+   CARDS
+════════════════════════════════════════ */
+.card {
+  background: var(--white);
+  border: 1px solid var(--cream3);
+  border-radius: var(--r2);
+  overflow: hidden;
+  box-shadow: 0 2px 16px var(--shadow);
+  margin-bottom: 16px;
+}
+.card-head {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--cream2);
+  display: flex; align-items: center; gap: 10px;
+}
+.ch-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: var(--gold-lt);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; flex-shrink: 0;
+}
+.ch-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px; font-weight: 600; color: var(--ink);
+}
+.ch-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.card-body { padding: 22px 24px; }
+
+/* Steps display */
+.step-panel { display: none; }
+.step-panel.active { display: block; }
+
+/* ════════════════════════════════════════
+   FORM ELEMENTS
+════════════════════════════════════════ */
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+.field-row.full { grid-template-columns: 1fr; }
+@media (max-width: 560px) { .field-row { grid-template-columns: 1fr; } }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label {
+  font-size: 12px; font-weight: 600; color: var(--ink2);
+  letter-spacing: 0.3px; text-transform: uppercase;
+}
+.field-hint { font-size: 11px; color: var(--muted); margin-top: -3px; }
+
+.num-input-wrap { display: flex; align-items: stretch; }
+.num-input {
+  flex: 1; background: var(--cream);
+  border: 1.5px solid var(--cream3);
+  border-right: none;
+  border-radius: var(--r) 0 0 var(--r);
+  padding: 11px 14px;
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 600; color: var(--ink);
+  outline: none; transition: border-color 0.18s;
+  -moz-appearance: textfield;
+}
+.num-input::-webkit-inner-spin-button { display: none; }
+.num-input:focus { border-color: var(--forest3); }
+.num-suffix {
+  background: var(--cream2); border: 1.5px solid var(--cream3);
+  border-radius: 0 var(--r) var(--r) 0;
+  padding: 11px 14px; font-size: 12px; font-weight: 600;
+  color: var(--muted); display: flex; align-items: center;
+  white-space: nowrap;
+}
+
+/* Slider */
+.slider-field { margin-bottom: 22px; }
+.slider-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.slider-label { font-size: 12px; font-weight: 600; color: var(--ink2); text-transform: uppercase; letter-spacing: 0.3px; }
+.slider-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 700; color: var(--forest);
+}
+.slider-unit { font-size: 13px; color: var(--muted); font-family: 'DM Sans', sans-serif; font-weight: 400; }
+
+input[type=range] {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 5px;
+  background: var(--cream2);
+  border-radius: 3px; outline: none; cursor: pointer;
+  border: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px; height: 22px;
+  background: var(--forest);
+  border-radius: 50%; border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(26,61,43,0.25);
+  cursor: pointer; transition: transform 0.15s;
+}
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+.slider-track-wrap { position: relative; }
+.slider-fill-bar {
+  position: absolute; top: 0; left: 0;
+  height: 5px; background: var(--forest3);
+  border-radius: 3px; pointer-events: none;
+  transition: width 0.1s;
+}
+
+/* Module checkboxes */
+.modules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 460px) { .modules-grid { grid-template-columns: 1fr; } }
+.mod-check {
+  background: var(--cream);
+  border: 1.5px solid var(--cream3);
+  border-radius: var(--r);
+  padding: 12px 14px;
+  cursor: pointer; transition: all 0.18s;
+  display: flex; align-items: center; gap: 10px;
+}
+.mod-check:hover { border-color: var(--forest3); background: var(--cream2); }
+.mod-check.checked {
+  border-color: var(--forest3);
+  background: rgba(26,61,43,0.04);
+  box-shadow: 0 0 0 3px rgba(26,61,43,0.06);
+}
+.mc-box {
+  width: 18px; height: 18px; border-radius: 4px;
+  border: 1.5px solid var(--cream3);
+  background: white; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; font-size: 10px;
+}
+.mod-check.checked .mc-box { background: var(--forest3); border-color: var(--forest3); color: white; }
+.mc-icon { font-size: 17px; flex-shrink: 0; }
+.mc-text { flex: 1; }
+.mc-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+.mc-desc { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+
+/* Nav buttons */
+.nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; gap: 12px; }
+.btn-back {
+  background: transparent; border: 1.5px solid var(--cream3);
+  border-radius: var(--r); padding: 11px 24px;
+  color: var(--muted); font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 500; cursor: pointer;
+  transition: all 0.18s;
+}
+.btn-back:hover { border-color: var(--muted); color: var(--ink); }
+.btn-next {
+  background: var(--forest); color: var(--cream);
+  border: none; border-radius: var(--r);
+  padding: 12px 28px; font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s; display: flex; align-items: center; gap: 8px;
+}
+.btn-next:hover { background: var(--forest3); transform: translateY(-1px); }
+.btn-next:disabled { background: var(--cream3); color: var(--muted); cursor: not-allowed; transform: none; }
+
+/* ════════════════════════════════════════
+   RESULTS SIDEBAR (sticky)
+════════════════════════════════════════ */
+.results-panel {
+  position: sticky; top: 20px;
+}
+.res-card {
+  background: var(--forest);
+  border-radius: var(--r2);
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(26,61,43,0.2);
+  margin-bottom: 14px;
+}
+.rc-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; color: rgba(255,255,255,0.4);
+  margin-bottom: 18px;
+  display: flex; align-items: center; gap: 8px;
+}
+.rc-label::before { content: ''; width: 16px; height: 1px; background: currentColor; }
+
+/* Savings meters */
+.saving-item { margin-bottom: 18px; }
+.si-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; }
+.si-name { font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 500; }
+.si-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 700; color: white;
+  transition: all 0.5s;
+}
+.si-bar { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+.si-fill {
+  height: 100%; border-radius: 2px;
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Total */
+.total-block {
+  background: var(--gold);
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-top: 20px;
+}
+.tb-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(28,34,24,0.6); margin-bottom: 4px; }
+.tb-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px; font-weight: 700;
+  color: var(--ink); line-height: 1;
+}
+.tb-sub { font-size: 11px; color: rgba(28,34,24,0.6); margin-top: 5px; }
+
+/* ROI metrics */
+.roi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.roi-item {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px; padding: 12px;
+}
+.ri-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700; color: white; line-height: 1;
+}
+.ri-lbl { font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 4px; font-weight: 500; letter-spacing: 0.3px; }
+
+/* Detail card */
+.detail-card {
+  background: white;
+  border: 1px solid var(--cream3);
+  border-radius: var(--r2);
+  padding: 18px;
+  box-shadow: 0 2px 12px var(--shadow);
+}
+.dc-heading {
+  font-family: 'Playfair Display', serif;
+  font-size: 14px; font-weight: 600; color: var(--ink);
+  margin-bottom: 12px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--cream2);
+  display: flex; align-items: center; gap: 8px;
+}
+.breakdown-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 7px 0; border-bottom: 1px dashed var(--cream2);
+  font-size: 12px;
+}
+.breakdown-item:last-child { border-bottom: none; padding-bottom: 0; }
+.bi-label { color: var(--muted); }
+.bi-val { font-weight: 600; color: var(--ink); }
+.bi-val.pos { color: var(--forest3); }
+.bi-val.neg { color: var(--rust); }
+
+/* ════════════════════════════════════════
+   RESULTS STEP (full-width)
+════════════════════════════════════════ */
+.results-step { display: none; }
+.results-step.active { display: block; }
+
+.results-hero {
+  background: var(--forest);
+  border-radius: var(--r2);
+  padding: 36px 40px;
+  margin-bottom: 20px;
+  position: relative; overflow: hidden;
+}
+.results-hero::before {
+  content: '';
+  position: absolute; top: -80px; right: -80px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(200,146,42,0.2) 0%, transparent 65%);
+}
+.rh-eyebrow {
+  font-size: 11px; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--gold2);
+  margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.rh-eyebrow::before { content: '✦'; }
+.rh-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(22px, 3.5vw, 36px);
+  font-weight: 700; color: white; line-height: 1.1;
+  margin-bottom: 8px;
+}
+.rh-sub { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 28px; }
+.rh-total {
+  display: inline-block;
+  background: var(--gold);
+  border-radius: 12px; padding: 16px 28px;
+}
+.rht-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(28,34,24,0.6); }
+.rht-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 48px; font-weight: 700; color: var(--ink);
+  line-height: 1; margin-top: 4px;
+}
+.rht-sub { font-size: 12px; color: rgba(28,34,24,0.55); margin-top: 6px; }
+
+/* Results metrics grid */
+.metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+@media (max-width: 700px) { .metrics-grid { grid-template-columns: 1fr 1fr; } }
+.metric-card {
+  background: white; border: 1px solid var(--cream3);
+  border-radius: var(--r2); padding: 20px;
+  box-shadow: 0 2px 8px var(--shadow);
+  border-top: 3px solid;
+  transition: transform 0.2s;
+}
+.metric-card:hover { transform: translateY(-2px); }
+.metric-card.m1 { border-top-color: var(--forest3); }
+.metric-card.m2 { border-top-color: var(--gold); }
+.metric-card.m3 { border-top-color: var(--teal); }
+.metric-card.m4 { border-top-color: var(--rust); }
+.mc-icon-lg { font-size: 26px; margin-bottom: 10px; }
+.mc-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 6px; }
+.mc-big {
+  font-family: 'Playfair Display', serif;
+  font-size: 30px; font-weight: 700; color: var(--ink); line-height: 1;
+}
+.mc-desc { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+
+/* Module results */
+.module-results { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+@media (max-width: 700px) { .module-results { grid-template-columns: 1fr; } }
+.mr-card {
+  background: white; border: 1px solid var(--cream3);
+  border-radius: var(--r2); padding: 20px 18px;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.mrc-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.mrc-icon {
+  width: 38px; height: 38px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.mrc-name { font-weight: 700; font-size: 14px; color: var(--ink); }
+.mrc-cat { font-size: 11px; color: var(--muted); }
+.mrc-save {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px; font-weight: 700; color: var(--forest);
+  margin-bottom: 4px;
+}
+.mrc-detail { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+/* CTA */
+.cta-section {
+  background: var(--cream2); border: 1px solid var(--cream3);
+  border-radius: var(--r2); padding: 32px 36px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 20px;
+}
+.cta-text h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700; color: var(--ink);
+  margin-bottom: 6px;
+}
+.cta-text p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+.btn-cta {
+  background: var(--forest); color: var(--cream);
+  border: none; border-radius: var(--r);
+  padding: 14px 32px; font-family: 'DM Sans', sans-serif;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s; white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(26,61,43,0.25);
+}
+.btn-cta:hover { background: var(--forest3); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(26,61,43,0.3); }
+.btn-reset {
+  background: transparent; border: 1.5px solid var(--forest);
+  border-radius: var(--r); padding: 14px 24px;
+  color: var(--forest); font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: all 0.18s; white-space: nowrap;
+}
+.btn-reset:hover { background: var(--forest); color: var(--cream); }
+
+/* Animations */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes countUp { from { opacity: 0; } to { opacity: 1; } }
+.au { animation: fadeUp 0.4s ease both; }
+.au-d1 { animation-delay: 0.05s; }
+.au-d2 { animation-delay: 0.10s; }
+.au-d3 { animation-delay: 0.15s; }
+.au-d4 { animation-delay: 0.20s; }
+.au-d5 { animation-delay: 0.25s; }
+
+/* Divider */
+.section-divider {
+  display: flex; align-items: center; gap: 14px;
+  margin: 8px 0 16px; color: var(--muted);
+  font-size: 11px; font-weight: 600; letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.section-divider::before, .section-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--cream2);
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="logo-area">
+    <div class="logo-mark">🍽️</div>
+    <div class="logo-text">
+      <div class="brand">MealSuite</div>
+      <div class="tagline">Foodservice Management Platform</div>
+    </div>
+  </div>
+  <div class="hdr-pill">ROI Value Calculator</div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div>
+    <div class="hero-kicker">Operational Value Assessment</div>
+    <h1>How much could MealSuite <em>save your community</em> this year?</h1>
+    <p class="hero-sub">Answer 3 quick questions about your facility. We'll calculate your projected annual savings across labor, food waste, compliance, and dining revenue.</p>
+    <div class="hero-stats">
+      <div class="hs"><div class="hs-val">30%</div><div class="hs-lbl">Avg. food waste reduction</div></div>
+      <div class="hs"><div class="hs-val">12 hrs</div><div class="hs-lbl">Saved per staff per week</div></div>
+      <div class="hs"><div class="hs-val">97%</div><div class="hs-lbl">Dietary accuracy rate</div></div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="hv-label">Platform Modules</div>
+    <div class="hv-module"><div class="hv-icon">📋</div><div class="hv-name">Menu Planning & Nutrition</div><div class="hv-check">✓</div></div>
+    <div class="hv-module"><div class="hv-icon">🛒</div><div class="hv-name">Purchasing & Inventory</div><div class="hv-check">✓</div></div>
+    <div class="hv-module"><div class="hv-icon">👤</div><div class="hv-name">Resident Profiles & Dietary</div><div class="hv-check">✓</div></div>
+    <div class="hv-module"><div class="hv-icon">💳</div><div class="hv-name">Point of Sale & Ordering</div><div class="hv-check">✓</div></div>
+    <div class="hv-module"><div class="hv-icon">🍳</div><div class="hv-name">Kitchen Production Tools</div><div class="hv-check">✓</div></div>
+    <div class="hv-module"><div class="hv-icon">🔗</div><div class="hv-name">EHR Integration</div><div class="hv-check">✓</div></div>
+  </div>
+</div>
+
+<!-- STEPS NAV -->
+<div class="steps-nav" id="stepsNav">
+  <div class="sn-item active" id="snav1" onclick="goStep(1)">
+    <div class="sn-circle" id="snc1">1</div>
+    <div class="sn-label">Facility Profile</div>
+  </div>
+  <div class="sn-item" id="snav2">
+    <div class="sn-circle" id="snc2">2</div>
+    <div class="sn-label">Current Operations</div>
+  </div>
+  <div class="sn-item" id="snav3">
+    <div class="sn-circle" id="snc3">3</div>
+    <div class="sn-label">Select Modules</div>
+  </div>
+  <div class="sn-item" id="snav4">
+    <div class="sn-circle" id="snc4">4</div>
+    <div class="sn-label">Your Results</div>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="main-grid" id="mainGrid">
+
+  <!-- INPUT COLUMN -->
+  <div id="inputCol">
+
+    <!-- STEP 1: FACILITY -->
+    <div class="step-panel active" id="step1">
+      <div class="card au">
+        <div class="card-head">
+          <div class="ch-icon">🏥</div>
+          <div>
+            <div class="ch-title">Your Facility Profile</div>
+            <div class="ch-sub">Tell us about the size and structure of your community</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="field-row">
+            <div class="field">
+              <label>Total Residents / Patients</label>
+              <div class="field-hint">All care levels combined</div>
+              <div class="num-input-wrap">
+                <input class="num-input" type="number" id="residents" value="150" min="10" max="2000" oninput="updateCalc()">
+                <div class="num-suffix">residents</div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Number of Locations / Sites</label>
+              <div class="field-hint">Dining rooms, buildings, campuses</div>
+              <div class="num-input-wrap">
+                <input class="num-input" type="number" id="locations" value="1" min="1" max="50" oninput="updateCalc()">
+                <div class="num-suffix">sites</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label>Dietary / Foodservice Staff (FTEs)</label>
+              <div class="field-hint">Cooks, aides, dietitians included</div>
+              <div class="num-input-wrap">
+                <input class="num-input" type="number" id="staff" value="8" min="1" max="200" oninput="updateCalc()">
+                <div class="num-suffix">FTEs</div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Avg. Staff Hourly Wage</label>
+              <div class="field-hint">Blended rate across all roles</div>
+              <div class="num-input-wrap">
+                <input class="num-input" type="number" id="wage" value="22" min="12" max="60" oninput="updateCalc()">
+                <div class="num-suffix">$ / hr</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-row full">
+            <div class="field">
+              <label>Annual Food & Supplies Budget</label>
+              <div class="field-hint">Total spend on ingredients, supplies, and beverages</div>
+              <div class="num-input-wrap">
+                <input class="num-input" type="number" id="foodBudget" value="450000" min="50000" max="10000000" oninput="updateCalc()">
+                <div class="num-suffix">$ / year</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="nav-row">
+            <div></div>
+            <button class="btn-next" onclick="goStep(2)">
+              Continue to Operations
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: OPERATIONS -->
+    <div class="step-panel" id="step2">
+      <div class="card au">
+        <div class="card-head">
+          <div class="ch-icon">⏱️</div>
+          <div>
+            <div class="ch-title">Current Operations Assessment</div>
+            <div class="ch-sub">How much time and resource is your team spending on manual processes today?</div>
+          </div>
+        </div>
+        <div class="card-body">
+
+          <div class="slider-field">
+            <div class="slider-header">
+              <div class="slider-label">Manual menu planning time (per week)</div>
+              <div><span class="slider-value" id="menuHoursVal">8</span><span class="slider-unit"> hrs/week</span></div>
+            </div>
+            <div class="slider-track-wrap">
+              <div class="slider-fill-bar" id="fb1"></div>
+              <input type="range" id="menuHours" min="2" max="30" value="8" oninput="sliderUpdate('menuHours','menuHoursVal','fb1');updateCalc()">
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-top:4px;"><span>2 hrs</span><span>30 hrs</span></div>
+          </div>
+
+          <div class="slider-field">
+            <div class="slider-header">
+              <div class="slider-label">Production & ordering sheets (per week)</div>
+              <div><span class="slider-value" id="prodHoursVal">6</span><span class="slider-unit"> hrs/week</span></div>
+            </div>
+            <div class="slider-track-wrap">
+              <div class="slider-fill-bar" id="fb2"></div>
+              <input type="range" id="prodHours" min="1" max="25" value="6" oninput="sliderUpdate('prodHours','prodHoursVal','fb2');updateCalc()">
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-top:4px;"><span>1 hr</span><span>25 hrs</span></div>
+          </div>
+
+          <div class="slider-field">
+            <div class="slider-header">
+              <div class="slider-label">Estimated current food waste</div>
+              <div><span class="slider-value" id="wasteVal">18</span><span class="slider-unit">% of food budget</span></div>
+            </div>
+            <div class="slider-track-wrap">
+              <div class="slider-fill-bar" id="fb3"></div>
+              <input type="range" id="waste" min="5" max="40" value="18" oninput="sliderUpdate('waste','wasteVal','fb3');updateCalc()">
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-top:4px;"><span>5%</span><span>40%</span></div>
+          </div>
+
+          <div class="slider-field">
+            <div class="slider-header">
+              <div class="slider-label">Dietary incident / error rate (per month)</div>
+              <div><span class="slider-value" id="errorsVal">4</span><span class="slider-unit"> incidents</span></div>
+            </div>
+            <div class="slider-track-wrap">
+              <div class="slider-fill-bar" id="fb4"></div>
+              <input type="range" id="errors" min="0" max="20" value="4" oninput="sliderUpdate('errors','errorsVal','fb4');updateCalc()">
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-top:4px;"><span>0</span><span>20 incidents</span></div>
+          </div>
+
+          <div class="slider-field">
+            <div class="slider-header">
+              <div class="slider-label">Current software / tool annual spend</div>
+              <div><span class="slider-value" id="softwareVal">12,000</span><span class="slider-unit">$ / yr</span></div>
+            </div>
+            <div class="slider-track-wrap">
+              <div class="slider-fill-bar" id="fb5"></div>
+              <input type="range" id="software" min="0" max="80000" step="1000" value="12000" oninput="sliderUpdate('software','softwareVal','fb5',true);updateCalc()">
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-top:4px;"><span>$0</span><span>$80k</span></div>
+          </div>
+
+          <div class="nav-row">
+            <button class="btn-back" onclick="goStep(1)">← Back</button>
+            <button class="btn-next" onclick="goStep(3)">
+              Continue to Modules
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: MODULES -->
+    <div class="step-panel" id="step3">
+      <div class="card au">
+        <div class="card-head">
+          <div class="ch-icon">🧩</div>
+          <div>
+            <div class="ch-title">Select Relevant Modules</div>
+            <div class="ch-sub">Choose the MealSuite capabilities most relevant to your operation</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="modules-grid" id="modulesGrid"></div>
+          <div class="nav-row" style="margin-top:20px;">
+            <button class="btn-back" onclick="goStep(2)">← Back</button>
+            <button class="btn-next" onclick="goStep(4)">
+              See My ROI Results
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /inputCol -->
+
+  <!-- SIDEBAR RESULTS -->
+  <div class="results-panel" id="sidebar">
+    <div class="res-card">
+      <div class="rc-label">Live Savings Estimate</div>
+
+      <div class="saving-item">
+        <div class="si-top">
+          <div class="si-name">⏱ Labor Time Savings</div>
+          <div class="si-val" id="sb-labor">$0</div>
+        </div>
+        <div class="si-bar"><div class="si-fill" id="sf-labor" style="width:0%;background:#4ade80;"></div></div>
+      </div>
+
+      <div class="saving-item">
+        <div class="si-top">
+          <div class="si-name">🗑 Food Waste Reduction</div>
+          <div class="si-val" id="sb-waste">$0</div>
+        </div>
+        <div class="si-bar"><div class="si-fill" id="sf-waste" style="width:0%;background:#60a5fa;"></div></div>
+      </div>
+
+      <div class="saving-item">
+        <div class="si-top">
+          <div class="si-name">⚠️ Compliance & Error Risk</div>
+          <div class="si-val" id="sb-errors">$0</div>
+        </div>
+        <div class="si-bar"><div class="si-fill" id="sf-errors" style="width:0%;background:#f97316;"></div></div>
+      </div>
+
+      <div class="saving-item">
+        <div class="si-top">
+          <div class="si-name">📈 Dining Revenue Uplift</div>
+          <div class="si-val" id="sb-revenue">$0</div>
+        </div>
+        <div class="si-bar"><div class="si-fill" id="sf-revenue" style="width:0%;background:var(--gold2);"></div></div>
+      </div>
+
+      <div class="total-block">
+        <div class="tb-label">Projected Annual Savings</div>
+        <div class="tb-val" id="sb-total">$0</div>
+        <div class="tb-sub">Before MealSuite investment cost</div>
+      </div>
+
+      <div class="roi-row">
+        <div class="roi-item">
+          <div class="ri-val" id="sb-roi">0%</div>
+          <div class="ri-lbl">Estimated ROI</div>
+        </div>
+        <div class="roi-item">
+          <div class="ri-val" id="sb-payback">—</div>
+          <div class="ri-lbl">Payback Period</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-card">
+      <div class="dc-heading">📊 Savings Breakdown</div>
+      <div class="breakdown-item"><span class="bi-label">Menu planning hrs saved / yr</span><span class="bi-val pos" id="bd-menuhrs">—</span></div>
+      <div class="breakdown-item"><span class="bi-label">Production hrs saved / yr</span><span class="bi-val pos" id="bd-prodhrs">—</span></div>
+      <div class="breakdown-item"><span class="bi-label">Food waste $ avoided</span><span class="bi-val pos" id="bd-waste$">—</span></div>
+      <div class="breakdown-item"><span class="bi-label">Error incidents prevented / yr</span><span class="bi-val pos" id="bd-errsaved">—</span></div>
+      <div class="breakdown-item"><span class="bi-label">Current software replaced</span><span class="bi-val pos" id="bd-software">—</span></div>
+      <div class="breakdown-item"><span class="bi-label">Per-resident annual value</span><span class="bi-val" id="bd-perres">—</span></div>
+    </div>
+  </div>
+
+</div><!-- /main-grid -->
+
+<!-- RESULTS STEP 4 (full width) -->
+<div class="results-step" id="step4">
+
+  <div class="results-hero au">
+    <div class="rh-eyebrow">Your ROI Assessment is Ready</div>
+    <div class="rh-title" id="rh-headline">Your facility could save significantly<br>by switching to MealSuite</div>
+    <div class="rh-sub" id="rh-sub">Based on your inputs below is your projected annual value from MealSuite</div>
+    <div class="rht-total">
+      <div class="rht-label">Projected Annual Savings</div>
+      <div class="rht-val" id="r4-total">$0</div>
+      <div class="rht-sub" id="r4-sub">across labor, waste, compliance & revenue</div>
+    </div>
+  </div>
+
+  <div class="metrics-grid au au-d1">
+    <div class="metric-card m1">
+      <div class="mc-icon-lg">⏱️</div>
+      <div class="mc-title">Labor Savings</div>
+      <div class="mc-big" id="r4-labor">$0</div>
+      <div class="mc-desc" id="r4-labor-desc">Staff hours freed from manual tasks</div>
+    </div>
+    <div class="metric-card m2">
+      <div class="mc-icon-lg">🗑️</div>
+      <div class="mc-title">Food Waste Reduced</div>
+      <div class="mc-big" id="r4-waste">$0</div>
+      <div class="mc-desc" id="r4-waste-desc">Smarter forecasting and production</div>
+    </div>
+    <div class="metric-card m3">
+      <div class="mc-icon-lg">🛡️</div>
+      <div class="mc-title">Compliance Value</div>
+      <div class="mc-big" id="r4-errors">$0</div>
+      <div class="mc-desc" id="r4-errors-desc">Dietary errors prevented annually</div>
+    </div>
+    <div class="metric-card m4">
+      <div class="mc-icon-lg">📈</div>
+      <div class="mc-title">Revenue Uplift</div>
+      <div class="mc-big" id="r4-revenue">$0</div>
+      <div class="mc-desc" id="r4-revenue-desc">Improved dining satisfaction & POS</div>
+    </div>
+  </div>
+
+  <div class="section-divider">Module-Level Impact</div>
+
+  <div class="module-results au au-d2" id="r4-modules"></div>
+
+  <div class="section-divider">Key Operational Metrics</div>
+
+  <div class="metrics-grid au au-d3" style="grid-template-columns:repeat(3,1fr);">
+    <div class="metric-card m1">
+      <div class="mc-icon-lg">🔄</div>
+      <div class="mc-title">Estimated ROI</div>
+      <div class="mc-big" id="r4-roi">0%</div>
+      <div class="mc-desc">First-year return on MealSuite investment</div>
+    </div>
+    <div class="metric-card m2">
+      <div class="mc-icon-lg">📅</div>
+      <div class="mc-title">Payback Period</div>
+      <div class="mc-big" id="r4-payback">—</div>
+      <div class="mc-desc">Months to full cost recovery</div>
+    </div>
+    <div class="metric-card m3">
+      <div class="mc-icon-lg">👤</div>
+      <div class="mc-title">Value Per Resident</div>
+      <div class="mc-big" id="r4-perres">—</div>
+      <div class="mc-desc">Annual savings attributed per resident</div>
+    </div>
+  </div>
+
+  <div class="cta-section au au-d4">
+    <div class="cta-text">
+      <h3>Ready to see MealSuite in action?</h3>
+      <p>Schedule a personalized demo to see exactly how MealSuite can deliver these results<br>for your specific facility, care levels, and operational challenges.</p>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn-reset" onclick="resetCalc()">↺ Recalculate</button>
+      <button class="btn-cta">Book a Free Demo →</button>
+    </div>
+  </div>
+
+</div><!-- /results-step -->
+
+</div><!-- /wrap -->
+
+<script>
+/* ═══════════════════════════════════════
+   MODULES DATA
+═══════════════════════════════════════ */
+const MODULES = [
+  { id:'menu',      icon:'📋', color:'#1a3d2b', name:'Menu Planning',     cat:'Core Operations',    desc:'Auto-build menus, manage cycles, nutritional analysis', saving:0.18, detail:'Eliminates 6–10 hrs/week of manual menu building and cycle management' },
+  { id:'resident',  icon:'👤', color:'#1e6b6b', name:'Resident Profiles', cat:'Dietary Compliance', desc:'Diet orders, textures, allergies, preferences per resident', saving:0.22, detail:'Reduces dietary errors and streamlines care-team communication' },
+  { id:'kitchen',   icon:'🍳', color:'#b34a2a', name:'Kitchen Production', cat:'Kitchen Ops',        desc:'Touchscreen prep sheets, portion scaling, yield tracking', saving:0.16, detail:'Paperless kitchen workflow saves 4–6 hrs/week per cook' },
+  { id:'inventory', icon:'📦', color:'#7c4d00', name:'Inventory & Purchasing', cat:'Supply Chain', desc:'Live supplier pricing, order automation, variance tracking', saving:0.20, detail:'Forecasting reduces over-ordering and waste by 30–40%' },
+  { id:'pos',       icon:'💳', color:'#1a3d70', name:'Point of Sale',      cat:'Dining Revenue',     desc:'Tableside ordering, kiosk, digital menu boards, accounts', saving:0.12, detail:'Faster service, fewer errors, higher average ticket per resident' },
+  { id:'ehr',       icon:'🔗', color:'#4a1a6b', name:'EHR Integration',   cat:'Compliance',         desc:'Sync diet orders from clinical systems in real time', saving:0.14, detail:'Eliminates manual diet order transcription — the #1 error source' },
+  { id:'selforder', icon:'📱', color:'#006b4a', name:'Self-Service Ordering', cat:'Resident Experience', desc:'Tablet/kiosk ordering, room service, bedside dining', saving:0.08, detail:'Improves resident satisfaction scores and dining participation rates' },
+  { id:'reporting', icon:'📊', color:'#6b3a1a', name:'Analytics & Reports', cat:'Management',        desc:'Labour, cost, waste, and compliance dashboards', saving:0.06, detail:'Real-time visibility eliminates end-of-month guesswork reporting' },
+];
+
+/* ═══════════════════════════════════════
+   STATE
+═══════════════════════════════════════ */
+let currentStep = 1;
+let checkedModules = new Set(['menu','resident','kitchen','inventory']);
+
+/* ═══════════════════════════════════════
+   INIT
+═══════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  buildModules();
+  initSliders();
+  updateCalc();
+});
+
+function buildModules() {
+  const g = document.getElementById('modulesGrid');
+  MODULES.forEach(m => {
+    const d = document.createElement('div');
+    d.className = 'mod-check' + (checkedModules.has(m.id) ? ' checked' : '');
+    d.id = 'mod-' + m.id;
+    d.innerHTML = `
+      <div class="mc-box">${checkedModules.has(m.id) ? '✓' : ''}</div>
+      <div class="mc-icon" style="color:${m.color}">${m.icon}</div>
+      <div class="mc-text">
+        <div class="mc-name">${m.name}</div>
+        <div class="mc-desc">${m.desc}</div>
+      </div>`;
+    d.onclick = () => toggleModule(m.id);
+    g.appendChild(d);
+  });
+}
+
+function toggleModule(id) {
+  if (checkedModules.has(id)) checkedModules.delete(id);
+  else checkedModules.add(id);
+  const el = document.getElementById('mod-' + id);
+  const box = el.querySelector('.mc-box');
+  el.classList.toggle('checked', checkedModules.has(id));
+  box.textContent = checkedModules.has(id) ? '✓' : '';
+  updateCalc();
+}
+
+/* ═══════════════════════════════════════
+   SLIDERS
+═══════════════════════════════════════ */
+function initSliders() {
+  const sliders = [
+    { id: 'menuHours', valId: 'menuHoursVal', fillId: 'fb1' },
+    { id: 'prodHours', valId: 'prodHoursVal', fillId: 'fb2' },
+    { id: 'waste',     valId: 'wasteVal',     fillId: 'fb3' },
+    { id: 'errors',    valId: 'errorsVal',    fillId: 'fb4' },
+    { id: 'software',  valId: 'softwareVal',  fillId: 'fb5', currency: true },
+  ];
+  sliders.forEach(s => sliderUpdate(s.id, s.valId, s.fillId, s.currency));
+}
+
+function sliderUpdate(sliderId, valId, fillId, currency = false) {
+  const sl = document.getElementById(sliderId);
+  const vl = document.getElementById(valId);
+  const fl = document.getElementById(fillId);
+  if (!sl || !vl || !fl) return;
+  const pct = (sl.value - sl.min) / (sl.max - sl.min) * 100;
+  fl.style.width = pct + '%';
+  vl.textContent = currency ? Number(sl.value).toLocaleString() : sl.value;
+}
+
+/* ═══════════════════════════════════════
+   CALCULATIONS
+═══════════════════════════════════════ */
+function getInputs() {
+  return {
+    residents:  parseFloat(document.getElementById('residents')?.value)  || 150,
+    locations:  parseFloat(document.getElementById('locations')?.value)  || 1,
+    staff:      parseFloat(document.getElementById('staff')?.value)      || 8,
+    wage:       parseFloat(document.getElementById('wage')?.value)       || 22,
+    foodBudget: parseFloat(document.getElementById('foodBudget')?.value) || 450000,
+    menuHours:  parseFloat(document.getElementById('menuHours')?.value)  || 8,
+    prodHours:  parseFloat(document.getElementById('prodHours')?.value)  || 6,
+    waste:      parseFloat(document.getElementById('waste')?.value)      || 18,
+    errors:     parseFloat(document.getElementById('errors')?.value)     || 4,
+    software:   parseFloat(document.getElementById('software')?.value)   || 12000,
+  };
+}
+
+function calculate() {
+  const i = getInputs();
+
+  // Module coverage multiplier
+  const totalSaving = Array.from(checkedModules).reduce((sum, id) => {
+    const m = MODULES.find(x => x.id === id);
+    return sum + (m ? m.saving : 0);
+  }, 0);
+  const modMult = Math.min(totalSaving, 1.0);
+
+  // LABOR SAVINGS
+  // Menu planning: MealSuite reduces to ~1hr/wk from current
+  const menuSaved  = Math.max(0, i.menuHours - 1);
+  const prodSaved  = Math.max(0, i.prodHours - 0.5);
+  const totalHrsSavedWk = (menuSaved + prodSaved) * i.locations;
+  const laborSavings = totalHrsSavedWk * 52 * i.wage;
+
+  // WASTE REDUCTION
+  // MealSuite reduces waste by 30-40%; use 35% as midpoint
+  const wasteReduction = 0.35;
+  const currentWaste$ = i.foodBudget * (i.waste / 100);
+  const wasteSavings = currentWaste$ * wasteReduction;
+
+  // ERROR / COMPLIANCE SAVINGS
+  // Each dietary error: avg. $850 in staff remediation, documentation, risk
+  const errorCostPerIncident = 850;
+  const errorsReduced = i.errors * 12 * 0.75; // 75% reduction
+  const complianceSavings = errorsReduced * errorCostPerIncident;
+
+  // REVENUE UPLIFT
+  // Better dining experience + POS: industry avg 3-5% dining revenue improvement
+  const diningRevenueBase = i.residents * 365 * 8; // $8/resident/day average F&B
+  const revUplift = diningRevenueBase * 0.035;
+
+  // Apply module multiplier (more modules = more value captured)
+  const modBoost = 0.6 + (modMult * 0.4); // 60% base + up to 40% from modules
+  const labor   = laborSavings * modBoost;
+  const waste   = wasteSavings * modBoost;
+  const errors  = complianceSavings * modBoost;
+  const revenue = checkedModules.has('pos') ? revUplift * modBoost : revUplift * 0.3;
+  const softwareReplaced = i.software * 0.6; // replaces ~60% of existing tools
+
+  const total = labor + waste + errors + revenue + softwareReplaced;
+
+  // Estimate MealSuite cost (rough: $3-8/resident/month depending on modules)
+  const modulesCount = checkedModules.size;
+  const msCostPerResMonth = 3.5 + (modulesCount * 0.4);
+  const msCostAnnual = msCostPerResMonth * i.residents * 12 * i.locations;
+
+  const roi = msCostAnnual > 0 ? ((total - msCostAnnual) / msCostAnnual * 100) : 0;
+  const paybackMonths = total > 0 ? Math.round(msCostAnnual / (total / 12)) : null;
+
+  return {
+    labor, waste, errors, revenue, softwareReplaced,
+    total, msCostAnnual, roi, paybackMonths,
+    menuHrsSaved: totalHrsSavedWk * 52,
+    prodHrsSaved: prodSaved * i.locations * 52,
+    errorsAnnual: errorsReduced,
+    perResident: total / i.residents,
+  };
+}
+
+function updateCalc() {
+  const r = calculate();
+  const fmt = v => '$' + Math.round(v).toLocaleString();
+  const maxVal = r.total * 1.1 || 1;
+
+  // Sidebar
+  setText('sb-labor',   fmt(r.labor));
+  setText('sb-waste',   fmt(r.waste));
+  setText('sb-errors',  fmt(r.errors));
+  setText('sb-revenue', fmt(r.revenue));
+  setText('sb-total',   fmt(r.total));
+
+  setBar('sf-labor',   r.labor   / maxVal * 100);
+  setBar('sf-waste',   r.waste   / maxVal * 100);
+  setBar('sf-errors',  r.errors  / maxVal * 100);
+  setBar('sf-revenue', r.revenue / maxVal * 100);
+
+  setText('sb-roi',     Math.round(r.roi) + '%');
+  setText('sb-payback', r.paybackMonths ? r.paybackMonths + ' mo' : '—');
+
+  // Breakdown
+  setText('bd-menuhrs',  Math.round(r.menuHrsSaved) + ' hrs');
+  setText('bd-prodhrs',  Math.round(r.prodHrsSaved) + ' hrs');
+  setText('bd-waste$',   fmt(r.waste));
+  setText('bd-errsaved', Math.round(r.errorsAnnual) + ' incidents');
+  setText('bd-software', fmt(r.softwareReplaced));
+  setText('bd-perres',   fmt(r.perResident));
+}
+
+/* ═══════════════════════════════════════
+   STEP NAVIGATION
+═══════════════════════════════════════ */
+function goStep(n) {
+  [1, 2, 3].forEach(i => {
+    document.getElementById('step' + i).classList.toggle('active', i === n);
+    const snav = document.getElementById('snav' + i);
+    snav.classList.remove('active', 'done');
+    if (i === n) snav.classList.add('active');
+    else if (i < n) snav.classList.add('done');
+    document.getElementById('snc' + i).textContent = i < n ? '✓' : i;
+  });
+
+  const grid = document.getElementById('mainGrid');
+  const step4 = document.getElementById('step4');
+  const snav4 = document.getElementById('snav4');
+
+  if (n === 4) {
+    grid.style.display = 'none';
+    step4.classList.add('active');
+    snav4.classList.add('active');
+    [1, 2, 3].forEach(i => document.getElementById('snav' + i).classList.replace('active', 'done') || document.getElementById('snav' + i).classList.add('done'));
+    [1, 2, 3].forEach(i => document.getElementById('snc' + i).textContent = '✓');
+    document.getElementById('snc4').textContent = '4';
+    buildResults();
+  } else {
+    grid.style.display = 'grid';
+    step4.classList.remove('active');
+    snav4.classList.remove('active', 'done');
+    document.getElementById('snc4').textContent = '4';
+  }
+
+  currentStep = n;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetCalc() {
+  checkedModules = new Set(['menu', 'resident', 'kitchen', 'inventory']);
+  goStep(1);
+  updateCalc();
+}
+
+/* ═══════════════════════════════════════
+   BUILD RESULTS PAGE
+═══════════════════════════════════════ */
+function buildResults() {
+  const r = calculate();
+  const i = getInputs();
+  const fmt = v => '$' + Math.round(v).toLocaleString();
+
+  setText('r4-total',    fmt(r.total));
+  setText('r4-labor',    fmt(r.labor));
+  setText('r4-waste',    fmt(r.waste));
+  setText('r4-errors',   fmt(r.errors));
+  setText('r4-revenue',  fmt(r.revenue));
+  setText('r4-roi',      Math.round(r.roi) + '%');
+  setText('r4-payback',  r.paybackMonths ? r.paybackMonths + ' mo' : '< 12 mo');
+  setText('r4-perres',   fmt(r.perResident) + '/yr');
+
+  setText('r4-labor-desc',  `${Math.round(r.menuHrsSaved + r.prodHrsSaved)} staff hours freed annually from manual menu and production work`);
+  setText('r4-waste-desc',  `~35% reduction on $${Math.round(i.foodBudget * i.waste / 100).toLocaleString()} current annual waste`);
+  setText('r4-errors-desc', `${Math.round(r.errorsAnnual)} fewer dietary incidents per year across your community`);
+
+  setText('rh-headline', `${i.residents}-resident community could save ${fmt(r.total)} / year`);
+
+  // Module breakdown
+  const grid = document.getElementById('r4-modules');
+  grid.innerHTML = '';
+  checkedModules.forEach(mid => {
+    const m = MODULES.find(x => x.id === mid);
+    if (!m) return;
+    const modSave = (r.total * m.saving / Array.from(checkedModules).reduce((s, id) => { const mm = MODULES.find(x => x.id === id); return s + (mm ? mm.saving : 0); }, 0));
+    const d = document.createElement('div');
+    d.className = 'mr-card';
+    d.innerHTML = `
+      <div class="mrc-head">
+        <div class="mrc-icon" style="background:${m.color}22;color:${m.color}">${m.icon}</div>
+        <div><div class="mrc-name">${m.name}</div><div class="mrc-cat">${m.cat}</div></div>
+      </div>
+      <div class="mrc-save">${fmt(modSave)}</div>
+      <div class="mrc-detail">${m.detail}</div>`;
+    grid.appendChild(d);
+  });
+}
+
+/* ═══════════════════════════════════════
+   UTILS
+═══════════════════════════════════════ */
+function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+function setBar(id, pct)  { const el = document.getElementById(id); if (el) el.style.width = Math.min(100, pct) + '%'; }
+</script>
+</body>
+</html>
